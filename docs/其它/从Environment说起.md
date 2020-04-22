@@ -36,13 +36,14 @@ Mybatis自带了两种 `DataSource`，`PooledDataSource` 与 `UnpooledDataSource
 详见[Mybatis中的DataSource](/其它/Mybatis中的DataSource.md)
 
 ## set与build
-Environment类对以上属性并未提供set方法，只能在构造器中全部传入，但是却提供了build方法，看起来更加优雅。
+Environment类对以上属性并未提供set方法，只能在构造器中全部传入，但是却提供了Builder类及build方法，看起来更加优雅。
 ```
 new Environment.Builder("test-env")
     .transactionFactory(getTransactionFactory())
     .dataSource(getDataSource())
     .build();
 ```
+这种XxxBuilder在Mybatis中很常见。
 
 ## 参考
 [官方文档](https://mybatis.org/mybatis-3/zh/configuration.html#environments)

@@ -19,9 +19,15 @@ import java.util.Date;
 
 public class EnvironmentTest {
     private Configuration configuration;
+    private String insertSqlId = "ink.akira.mybatis.student.insert";
 
     @Before
     public void before() {
+        createConfiguration();
+        addInsertSql();
+    }
+
+    public void createConfiguration() {
         // 数据源
         String driver = "com.mysql.cj.jdbc.Driver";
         String url = "jdbc:mysql://localhost:3306/re0_mybatis?serverTimezone=GMT%2B8";
@@ -39,31 +45,26 @@ public class EnvironmentTest {
         configuration = new Configuration(environment);
     }
 
-    @Test
-    public void tmp(){
+    public void addInsertSql(){
         String insertSql = "insert into student value (#{id}, #{age}, #{userName}, #{birth})";
         StaticTextSqlNode sqlNode = new StaticTextSqlNode(insertSql);
         RawSqlSource sqlSource = new RawSqlSource(configuration, sqlNode, Student.class);
+        MappedStatement ms = new MappedStatement.Builder(configuration, insertSqlId, sqlSource, SqlCommandType.INSERT).build();
+        configuration.addMappedStatement(ms);
     }
+
 
     @Test
     public void testInsert(){
-        // 往Configuration中添加sql
-        String insertSql = "insert into student value (#{id}, #{age}, #{userName}, #{birth})";
-        StaticTextSqlNode sqlNode = new StaticTextSqlNode(insertSql);
-        RawSqlSource sqlSource = new RawSqlSource(configuration, sqlNode, Student.class);
-        String sqlId = "hello-stat";
-        MappedStatement ms = new MappedStatement.Builder(configuration, sqlId, sqlSource, SqlCommandType.INSERT).build();
-        configuration.addMappedStatement(ms);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
         try(SqlSession sqlSession = sqlSessionFactory.openSession(true)) {
-            Student student = new Student(1003, 18, "akira", new Date());
-            sqlSession.insert(sqlId, student);
+            Student student = new Student(1004, 18, "akira", new Date());
+            sqlSession.insert(insertSqlId, student);
         }
     }
 
     @Test
-    public void getInit(){
+    public void init(){
         String resource = "mybatis-conf.xml";
         InputStream is = EnvironmentTest.class.getClassLoader().getResourceAsStream(resource);
         SqlSessionFactory sessionFactory = new SqlSessionFactoryBuilder().build(is);
@@ -73,5 +74,12 @@ public class EnvironmentTest {
         BoundSql boundSql = ms.getBoundSql(student);
         SqlSource sqlSource = ms.getSqlSource();
         BoundSql boundSql1 = sqlSource.getBoundSql(student);
+    }
+
+    @Test
+    public void tmp(){
+        String insertSql = "insert into student value (#{id}, #{age}, #{userName}, #{birth})";
+        StaticTextSqlNode sqlNode = new StaticTextSqlNode(insertSql);
+        RawSqlSource sqlSource = new RawSqlSource(configuration, sqlNode, Student.class);
     }
 }
