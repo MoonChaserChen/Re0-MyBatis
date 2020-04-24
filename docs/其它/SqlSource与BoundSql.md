@@ -67,6 +67,7 @@ public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, O
     return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
 }
 ```
+> 即利用 `GenericTokenParser` + `TokenHandler` （这里为ParameterMappingTokenHandler）进行处理
 
 ### SqlSourceBuilder与SqlSource
 在[XMLScriptBuilder](#XMLScriptBuilder)可知解析xml实际上选择了 `DynamicSqlSource` 或 `RawSqlSource`，
