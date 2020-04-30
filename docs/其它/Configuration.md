@@ -2,7 +2,7 @@
 mybatis可粗略地分为以下几个部分：
 1. mybatis的基础配置信息，如mybatis-conf.xml
 2. mybatis所有sql的xml
-3. mybatis将Interface与sql绑定
+3. mybatis将Interface与sql绑定（感觉这个其实是mybatis-spring做的）
 
 而Configuration为mybatis中的一个非常重量级的类，几乎包含了所有与mybatis相关的东西（包括上面的），同时很多类也引用了Configuration以获取到几乎所有的信息。
 ## 从Environment说起
