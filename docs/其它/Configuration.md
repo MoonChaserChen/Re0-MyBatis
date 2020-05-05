@@ -4,7 +4,13 @@ mybatis可粗略地分为以下几个部分：
 2. mybatis所有sql的xml
 3. mybatis将Interface与sql绑定（感觉这个其实是mybatis-spring做的）
 
-而Configuration为mybatis中的一个非常重量级的类，几乎包含了所有与mybatis相关的东西（包括上面的），同时很多类也引用了Configuration以获取到几乎所有的信息。
+而Configuration为mybatis中的一个非常重量级的类，几乎包含了所有与mybatis相关的东西（包括上面的）。同时很多类也引用了Configuration以获取到几乎所有的信息，比如：
+1. DefaultSqlSessionFactory
+2. DefaultSqlSession
+3. BaseExecutor
+4. MappedStatement
+5. ...
+
 ## 从Environment说起
 Mybatis作为持久层，直接和数据库打交道，在Mybatis中与这部分关联的类为： `org.apache.ibatis.mapping.Environment`，这个类包含了数据源 `DataSource` 及事务管理 `TransactionFactory`
 ```
