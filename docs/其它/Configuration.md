@@ -9,7 +9,8 @@ mybatis可粗略地分为以下几个部分：
 2. DefaultSqlSession
 3. BaseExecutor
 4. MappedStatement
-5. ...
+5. ResultMap
+6. ...
 
 ## 从Environment说起
 Mybatis作为持久层，直接和数据库打交道，在Mybatis中与这部分关联的类为： `org.apache.ibatis.mapping.Environment`，这个类包含了数据源 `DataSource` 及事务管理 `TransactionFactory`
