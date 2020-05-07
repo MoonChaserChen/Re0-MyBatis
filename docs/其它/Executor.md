@@ -47,3 +47,35 @@ public class Configuration {
     // ...
 }  
 ```
+
+## CachingExecutor
+一级缓存？CachingExecutor中有两个属性： 
+```
+private final Executor delegate;
+private final TransactionalCacheManager tcm = new TransactionalCacheManager();
+```
+>1. 这个delegate即为除缓存外实际执行的Executor，如：SIMPLE, REUSE, BATCH。在这个方法里表现得比较明显：
+>2. 这个tcm用到缓存管理
+
+以下方法表现得比较明显：
+```
+public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
+    Cache cache = ms.getCache();
+    if (cache != null) {
+        flushCacheIfRequired(ms);
+        if (ms.isUseCache() && resultHandler == null) {
+            ensureNoOutParams(ms, boundSql);
+            @SuppressWarnings("unchecked")
+            List<E> list = (List<E>) tcm.getObject(cache, key);
+            if (list == null) {
+                list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+                tcm.putObject(cache, key, list); // issue #578 and #116
+            }
+            return list;
+        }
+    }
+    return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+}
+```
+可以看出，这里的缓存同时用到了 `MappedStatement` 与 `TransactionalCacheManager`
+> 既然一级缓存是针对于SqlSession的，为什么不在SqlSession下创建一个Map来实现一级缓存呢？
