@@ -9,7 +9,8 @@ Through this interface you can execute commands, get mappers and manage transact
 ```
 
 ### DefaultSqlSession
-SqlSession的默认实现。虽然SqlSession可以看做是sql执行的入口，但是其内部却是由Executor去执行这些sql的。如：
+SqlSession的默认实现。虽然SqlSession可以看做是sql执行的入口，但是其内部却是由Executor去执行这些sql的（而Executor却是由 `StatementHandler` 去执行的）。如：
+`org.apache.ibatis.session.defaults.DefaultSqlSession.selectList`
 ```
 @Override
 public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
@@ -23,6 +24,23 @@ public <E> List<E> selectList(String statement, Object parameter, RowBounds rowB
     }
 }
 ```
+
+`org.apache.ibatis.executor.SimpleExecutor.doUpdate`
+```
+@Override
+public int doUpdate(MappedStatement ms, Object parameter) throws SQLException {
+Statement stmt = null;
+    try {
+        Configuration configuration = ms.getConfiguration();
+        StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);
+        stmt = prepareStatement(handler, ms.getStatementLog());
+        return handler.update(stmt);
+    } finally {
+        closeStatement(stmt);
+    }
+}
+```
+
 同时DefaultSqlSession也需要引用Configuration以获取到MappedStatement
 > 参数中的statement实际上是MappedStatement的id，或者称为管理所有MappedStatement的Map的Key，也是sql的xml中的 namespace + id
 
