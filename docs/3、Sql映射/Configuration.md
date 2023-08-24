@@ -12,6 +12,19 @@ mybatis可粗略地分为以下几个部分：
 5. ResultMap
 6. ...
 
+* MapperRegistry
+* InterceptorChain
+* TypeHandlerRegistry
+* TypeAliasRegistry
+* LanguageDriverRegistry
+* Map<String, MappedStatement> mappedStatements
+* Map<String, Cache> caches
+* Map<String, ResultMap>
+* Map<String, ParameterMap>
+* Map<String, KeyGenerator> keyGenerators
+* ExecutorType
+* ResultSetType
+
 ### 参考
 [官方文档](https://mybatis.org/mybatis-3/zh/configuration.html#environments)
 
