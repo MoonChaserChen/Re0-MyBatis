@@ -8,7 +8,7 @@ org.apache.ibatis.cache.CacheKey
 
 ### CacheKey使用例子
 `org.apache.ibatis.executor.BaseExecutor.createCacheKey`
-```
+```Java
 public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql) {
     if (closed) {
         throw new ExecutorException("Executor was closed.");

@@ -4,7 +4,7 @@
 <dependency>
     <groupId>org.mybatis.spring.boot</groupId>
     <artifactId>mybatis-spring-boot-starter</artifactId>
-    <version>2.1.2</version>
+    <version>2.3.0</version>
 </dependency>
 ```
 其中还包括：
@@ -12,14 +12,14 @@
 <dependencies>
     <dependency>
         <groupId>org.mybatis</groupId>
-        <artifactId>mybatis-spring</artifactId>
-        <version>3.5.4</version>
+        <artifactId>mybatis</artifactId>
+        <version>3.5.11</version>
     </dependency>
     <dependency>
         <groupId>org.mybatis</groupId>
-        <artifactId>mybatis</artifactId>
-        <version>2.0.4</version>
-    </dependency>  
+        <artifactId>mybatis-spring</artifactId>
+        <version>2.1.0</version>
+    </dependency>
 </dependencies>
 ```
 
