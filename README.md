@@ -7,5 +7,3 @@
 | org.mybatis:mybatis                                 | 3.5.11 |
 | org.mybatis:mybatis-spring                          | 2.1.0  |
 
-## 参考
-* 官方中文文档 https://mybatis.org/mybatis-3/zh/index.html\

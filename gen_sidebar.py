@@ -8,6 +8,7 @@ suffix = ".md"
 gen_file_name = "summary.md"
 doc_path = "docs"
 read_me_file = "README.md"
+read_me_reference_file = "README-reference.md"
 
 ignore_files = [gen_file_name, ".git", read_me_file, "images"]
 
@@ -35,6 +36,17 @@ def print_file(c_dir, depth, sidebar_file, readme_file):
                 readme_file.write(content)
 
 
+def append_file_content(_from, _to):
+    if not os.path.isfile(_from) or not os.path.isfile(_from):
+        return
+    f_f = codecs.open(_from, 'r', encoding='utf-8')
+    t_f = codecs.open(_to, 'a', encoding='utf-8')
+    t_f.write("\n")
+    t_f.writelines(f_f.readlines())
+    f_f.close()
+    t_f.close()
+
+
 os.chdir(doc_path)
 copyfile("../" + read_me_file, read_me_file)
 
@@ -45,3 +57,5 @@ r_f.write("\n## 目录\n")
 print_file(".", 0, g_f, r_f)
 g_f.close()
 r_f.close()
+
+append_file_content('../' + read_me_reference_file, read_me_file)
