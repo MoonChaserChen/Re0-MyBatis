@@ -99,6 +99,93 @@ Cache <|.. TransactionalCache
 | SerializedCache      | 增加Serialize功能。在保存V时，将其Serialize为字节数组。                                       |
 | TransactionalCache   | 二级缓存会用到                                                                     |
 
+## 三、一级缓存
+Mybatis的一级缓存由BaseExecutor实现。使用到的Cache是PerpetualCache。
+```java
+public abstract class BaseExecutor implements Executor {
+    protected PerpetualCache localCache;
+
+    @Override
+    public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
+        // ------------------
+        // code simplified
+        // ------------------
+        List<E> list;
+        try {
+            // 先查localCache
+            list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+            if (list != null) {
+                handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
+            } else {
+                // 未查到，查询数据库
+                list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
+            }
+        } finally {
+            queryStack--;
+        }
+        return list;
+    }
+    // ------------------
+    // other code ignored
+    // ------------------
+}
+```
+上面可以看到在BaseExecutor查询时，先查localCache，查不到再查询数据库。
+
+### 缓存的清除
+缓存的清除逻辑直接影响缓存的生命周期。缓存的清除方法为：`BaseExecutor#clearLocalCache()`，其调用时机有：
+1. 当前sqlSession执行了insert, update, delete方法（即使这些方法修改的是别的表）
+2. 当前sqlSession执行了commit, rollback方法
+3. 如指定的 ResultHandler，也不会查询一级缓存
+4. sql语句(MappedStatement)指明要清除缓存 flushCacheRequired。 
+    ```xml
+    <select id="selectXx" useCache="false">
+        ...
+    </select>
+    ```
+5. 一级缓存指明范围为 LocalCacheScope.STATEMENT 时，每次query后都会删除
+    ```xml
+    <settings>
+        <!--SESSION | STATEMENT，默认为 SESSION-->
+        <setting name="localCacheScope" value="STATEMENT"/>
+    </settings>
+    ```
+
+## 四、二级缓存
+Mybatis的二级缓存由CachingExecutor实现。使用到的Cache是PerpetualCache。
+```java
+public class CachingExecutor implements Executor {
+    // 这个delegate即为除缓存外实际执行的Executor，如：SIMPLE, REUSE, BATCH。
+    private final Executor delegate;
+    // 这个tcm用到缓存管理
+    private final TransactionalCacheManager tcm = new TransactionalCacheManager();
+
+    @Override
+    public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
+            throws SQLException {
+        // 缓存是基于 MappedStatement 的
+        Cache cache = ms.getCache();
+        if (cache != null) {
+            flushCacheIfRequired(ms);
+            if (ms.isUseCache() && resultHandler == null) {
+                ensureNoOutParams(ms, boundSql);
+                // 通过 TransactionalCacheManager、Cache、CacheKey 去查询缓存
+                @SuppressWarnings("unchecked")
+                List<E> list = (List<E>) tcm.getObject(cache, key);
+                if (list == null) {
+                    list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+                    tcm.putObject(cache, key, list); // issue #578 and #116
+                }
+                return list;
+            }
+        }
+        return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+    }
+    // ------------------
+    // other code ignored
+    // ------------------
+}
+```
 
 ## TransactionalCacheManager
 ```java
@@ -137,86 +224,6 @@ public class TransactionalCacheManager {
 }
 ```
 这个结构好难理解啊。TransactionalCache 是二级缓存
-
-## 三、一级缓存
-Mybatis的一级缓存由BaseExecutor实现。使用到的Cache是PerpetualCache。
-```java
-public abstract class BaseExecutor implements Executor {
-    protected PerpetualCache localCache;
-
-    @Override
-    public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
-        // ------------------
-        // code simplified
-        // ------------------
-        List<E> list;
-        try {
-            // 先查localCache
-            list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
-            if (list != null) {
-                handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
-            } else {
-                // 未查到，查询数据库
-                list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
-            }
-        } finally {
-            queryStack--;
-        }
-        return list;
-    }
-}
-```
-上面可以看到在BaseExecutor查询时，先查localCache，查不到再查询数据库。
-
-### 缓存的清除
-缓存的清除逻辑直接影响缓存的生命周期。缓存的清除方法为：`BaseExecutor#clearLocalCache()`，其调用时机有：
-1. 当前sqlSession执行了insert, update, delete方法（即使这些方法修改的是别的表）
-2. 当前sqlSession执行了commit, rollback方法
-3. sql语句(MappedStatement)指明要清除缓存 flushCacheRequired。 `<select id="selectXx" useCache="false">..</select>`
-4. 一级缓存指明范围为 LocalCacheScope.STATEMENT 时，每次query后都会删除
-
-
-```xml
-<settings>
-    <!--SESSION | STATEMENT，默认为 SESSION-->
-    <setting name="localCacheScope" value="STATEMENT"/>
-</settings>
-```
-## 四、二级缓存
-Mybatis的二级缓存由CachingExecutor实现。使用到的Cache是PerpetualCache。
-```java
-public class CachingExecutor implements Executor {
-    // 这个delegate即为除缓存外实际执行的Executor，如：SIMPLE, REUSE, BATCH。
-    private final Executor delegate;
-    // 这个tcm用到缓存管理
-    private final TransactionalCacheManager tcm = new TransactionalCacheManager();
-
-    @Override
-    public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
-            throws SQLException {
-        // 缓存是基于 MappedStatement 的
-        Cache cache = ms.getCache();
-        if (cache != null) {
-            flushCacheIfRequired(ms);
-            if (ms.isUseCache() && resultHandler == null) {
-                ensureNoOutParams(ms, boundSql);
-                // 通过 TransactionalCacheManager、Cache、CacheKey 去查询缓存
-                @SuppressWarnings("unchecked")
-                List<E> list = (List<E>) tcm.getObject(cache, key);
-                if (list == null) {
-                    list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
-                    tcm.putObject(cache, key, list); // issue #578 and #116
-                }
-                return list;
-            }
-        }
-        return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
-    }
-    // ------------------
-    // other code ignored
-    // ------------------
-}
-```
 查询逻辑：先查缓存，如果能查到则直接返回，如果查不到则通过内部Executor再去查询，查到后设置到缓存中并返回。
 
 数据的查询执行的流程就是 二级缓存 -> 一级缓存 -> 数据库。

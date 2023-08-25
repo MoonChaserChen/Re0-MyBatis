@@ -25,7 +25,6 @@ public interface SqlSession extends Closeable {
     // ------------------
 }
 ```
-> 我不理解为啥 commit, rollback 也放在了 SqlSession 里，这难道不是Sql执行过程中的一个步骤吗？比如update方法里就会进行 `commit` 或 `rollback`
 
 ### DefaultSqlSession
 `SqlSession` 的默认实现，其核心是从 `Configuration` 中查出对应的 `MappedStatement` 后交给  `Executor` 去执行的。
