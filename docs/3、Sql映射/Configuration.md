@@ -22,8 +22,9 @@ mybatis可粗略地分为以下几个部分：
 * Map<String, ResultMap>
 * Map<String, ParameterMap>
 * Map<String, KeyGenerator> keyGenerators
-* ExecutorType
+* protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
 * ResultSetType
+* TransactionFactory
 
 ### 参考
 [官方文档](https://mybatis.org/mybatis-3/zh/configuration.html#environments)
