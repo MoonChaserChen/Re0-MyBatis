@@ -1,11 +1,10 @@
 package ink.akira.mybatis.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Data
 public class Pet {
     private Long id;

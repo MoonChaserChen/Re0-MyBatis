@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="ink.akira.mybatis.pet">
+    <parameterMap id="insertPetParamMap" type="ink.akira.mybatis.domain.Pet">
+        <parameter property="udf" jdbcType="INTEGER" javaType="int"/>
+    </parameterMap>
+
     <insert id="insert">
         insert into pet value (#{id}, #{petName}, #{age})
+    </insert>
+
+    <insert id="insert2" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="ink.akira.mybatis.domain.Pet">
+        insert into pet (pet_name, age) value (#{petName}, #{age})
+    </insert>
+
+    <insert id="insert3" parameterType="ink.akira.mybatis.domain.Pet">
+        insert into pet (pet_name, age) value (#{petName}, #{age})
+    </insert>
+
+    <insert id="insert4" parameterMap="insertPetParamMap">
+        insert into pet (pet_name, age) value (#{petName}, #{age})
     </insert>
 </mapper>

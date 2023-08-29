@@ -2,6 +2,15 @@
 <!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <properties resource="db.properties"/>
+
+    <settings>
+        <setting name="localCacheScope" value="STATEMENT"/>
+    </settings>
+
+    <typeAliases>
+        <typeAlias alias="Pet" type="ink.akira.mybatis.domain.Pet"/>
+    </typeAliases>
+
     <environments default="dev">
         <environment id="dev">
             <transactionManager type="JDBC" />
@@ -15,6 +24,9 @@
     </environments>
 
     <mappers>
+        <!-- 使用相对于类路径的资源引用 -->
         <mapper resource="mapper/pet-mapper.xml" />
+        <!-- 将包内的映射器接口全部注册为映射器 -->
+        <package name="org.mybatis.builder"/>
     </mappers>
 </configuration>
